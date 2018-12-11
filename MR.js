@@ -1198,13 +1198,15 @@ Pin_Value.PinCircle = Current_Circle_OnGoing;
 Pin_Value.CCWas = CC_Obj.Current_Client_CC;
 
 // Update Of The Pin_History_Value With The Latest Pin :-
-Pin_History_Value.Pin_Key = JSON.stringify(Pin_Value); 
+Pin_History_Value[Pin_Key] = JSON.stringify(Pin_Value); 
 
 // Update of the Final Change To the Server :-
 
 // Build Of The Request :-
-var UpdateUserInternalData_Request = {"PlayFabId": currentPlayerId,"Data": {"Pin_History":Pin_History_Value}};
+var UpdateUserInternalData_Request = {"PlayFabId": currentPlayerId,"Data": {"Pin_History":JSON.stringify(Pin_History_Value)}};
                 
+log.info("Data.Pin_History : " + UpdateUserInternalData_Request.Data.Pin_History) + " !";
+
 // Submit Of The Request To the Server :-
  var Result = server.UpdateUserInternalData(UpdateUserInternalData_Request);
     
@@ -1213,7 +1215,7 @@ if(Result) // If Sucessfull :-
 {
     // Left;
 // Then Attach The Pin History Data And Return To the Client :-
-ReturnObj =  handlers.pop = Provide_ClientPinHistory ();
+ReturnObj =  handlers.pop(Provide_ClientPinHistory);
 
 ReturnObj.Result = 105; // Sucessful To pin !
 
