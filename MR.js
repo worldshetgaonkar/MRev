@@ -1118,32 +1118,39 @@ return ReturnObj;
 
 Current_Circle_OnGoing = 0;
 
-if(Current_UTC_Min >= 0) {Current_Circle_OnGoing++;}
-if(Current_UTC_Min >= 15){Current_Circle_OnGoing++;}
-if(Current_UTC_Min >= 30){Current_Circle_OnGoing++;}
-if(Current_UTC_Min >= 45){Current_Circle_OnGoing++;}
+if(Current_UTC_Min >= 15)
+{
+Current_Circle_OnGoing++;   
+}
+else
+{
+Current_Circle_OnGoing = 4;
+}
+
+if(Current_UTC_Min >= 30 && Current_Circle_OnGoing != 4){Current_Circle_OnGoing++;}
+if(Current_UTC_Min >= 45 && Current_Circle_OnGoing != 4){Current_Circle_OnGoing++;}
 
 ReturnObj.Error = 100; // 100 = Pin Time Over !
 
 
-if(Current_Circle_OnGoing == 1)
-{
-if(Current_UTC_Min >= 12){return ReturnObj;}   
-}
-
-if(Current_Circle_OnGoing == 2)
+if(Current_Circle_OnGoing == 1) // Then We Will Look For Circle 2 Release Time :-
 {
 if(Current_UTC_Min >= 27){return ReturnObj;}   
 }
 
-if(Current_Circle_OnGoing == 3)
+if(Current_Circle_OnGoing == 2) // Then We Will Look For Circle 3 Release Time :-
 {
 if(Current_UTC_Min >= 42){return ReturnObj;}   
 }
 
-if(Current_Circle_OnGoing == 4)
+if(Current_Circle_OnGoing == 3) // Then We Will Look For Circle 4 Release Time :-
 {
-if(Current_UTC_Min >= 57 || Current_UTC_Min == 0){return ReturnObj;}   
+if(Current_UTC_Min >= 57 || Current_UTC_Min == 0 ){return ReturnObj;}   
+}
+
+if(Current_Circle_OnGoing == 4) // Then We Will Look For Circle 1 Release Time :-
+{
+if(Current_UTC_Min >= 12) {return ReturnObj;}   
 }
 
 //#endregion
@@ -1170,14 +1177,17 @@ Pin_History_Value = JSON.parse(GetUserInternalData_Result.Data["Pin_History"].Va
 var Pin_Key = "Pin_";
 var Pin_Value = {};
 
-if(Pin_History_Value.length === undefined){Pin_Key = Pin_Key + "0"}
+if(Pin_History_Value.hasOwnProperty("TotalPins")) // Then Increass It By 1 :-
+{
+Pin_History_Value.TotalPins++;
+}
 else
 {
-Pin_Key = Pin_Key + Pin_History_Value.length;
+// Then Creat One :-
+Pin_History_Value.TotalPins = 1;
 }
 
-
-log.info("Pin_Key = " + Pin_Key + " !");
+Pin_Key = Pin_Key + Pin_History_Value.TotalPins;
 
 // Save Format :-Year/Month/Day/Set/PinCircle/CCWas/Value/CC :-
 
@@ -1205,7 +1215,7 @@ Pin_History_Value[Pin_Key] = JSON.stringify(Pin_Value);
 // Build Of The Request :-
 var UpdateUserInternalData_Request = {"PlayFabId": currentPlayerId,"Data": {"Pin_History":JSON.stringify(Pin_History_Value)}};
                 
-log.info("Data.Pin_History : " + UpdateUserInternalData_Request.Data.Pin_History) + " !";
+log.info("Data.Pin_History :" + UpdateUserInternalData_Request.Data.Pin_History) + " !";
 
 // Submit Of The Request To the Server :-
  var Result = server.UpdateUserInternalData(UpdateUserInternalData_Request);
@@ -1215,7 +1225,7 @@ if(Result) // If Sucessfull :-
 {
     // Left;
 // Then Attach The Pin History Data And Return To the Client :-
-ReturnObj =  handlers.pop(Provide_ClientPinHistory);
+ReturnObj = handlers.pop(Provide_ClientPinHistory());
 
 ReturnObj.Result = 105; // Sucessful To pin !
 
