@@ -1,4 +1,3 @@
-// Main Cloud Script 
 
 var  MaxReferral = 1000;
 var  ReferralCodeRedeemReward = 25;     
