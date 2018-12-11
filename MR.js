@@ -1,4 +1,4 @@
-// Git Test !
+// Main Cloud Script 
 
 var  MaxReferral = 1000;
 var  ReferralCodeRedeemReward = 25;     
@@ -1158,7 +1158,7 @@ var GetUserInternalData_Request = {"PlayFabId":currentPlayerId, "Keys": ["Pin_Hi
 
 // Submit of the Request to the Server :-
 
-var GetUserInternalData_Result =  server.GetUserInternalData (GetUserInternalData_Request);
+var GetUserInternalData_Result = server.GetUserInternalData (GetUserInternalData_Request);
 
 if(GetUserInternalData_Result.Data.hasOwnProperty("Pin_History"))  // Then Store The Value :-
 {
@@ -1203,7 +1203,7 @@ Pin_History_Value.Pin_Key = JSON.stringify(Pin_Value);
 // Update of the Final Change To the Server :-
 
 // Build Of The Request :-
-var UpdateUserInternalData_Request = {"PlayFabId": currentPlayerId,"Data": Pin_History_Value};
+var UpdateUserInternalData_Request = {"PlayFabId": currentPlayerId,"Data": {"Pin_History":Pin_History_Value}};
                 
 // Submit Of The Request To the Server :-
  var Result = server.UpdateUserInternalData(UpdateUserInternalData_Request);
@@ -1213,7 +1213,7 @@ if(Result) // If Sucessfull :-
 {
     // Left;
 // Then Attach The Pin History Data And Return To the Client :-
-ReturnObj = Provide_ClientPinHistory();
+ReturnObj =  handlers.pop = Provide_ClientPinHistory ();
 
 ReturnObj.Result = 105; // Sucessful To pin !
 
