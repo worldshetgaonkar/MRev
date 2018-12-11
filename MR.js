@@ -940,7 +940,7 @@ return GivenObj;
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//#region Pin's Recoder,Updater,Tracker,Taker Method's :-
+//#region Pin's Recoder,Updater,Tracker, Method's :-
 
 function Can_Client_Pin ()
 {
@@ -1065,16 +1065,7 @@ server.UpdateUserInternalData(UpdateUserInternalData_Request);
 }
 
 
-// This Function Will Take Client Pin Number And CC :-
-
-// Function Code's :-
-
-// 100 = Pin Time Over! 
-// 101 = Low CC!
-// 102 = Invalid PinNumber Value!
-// 103 = Invalid PinCC Value!
-// 104 = Error occur!
-// 105 = Sucessfull To Pin!
+// 100 = Pin Time Over,101 = Low CC, 102 = Invalid PinNumber Value, 103 = Invalid PinCC Value, 104 = Error occur ,105 = Sucessfull To Pin !
 
 handlers.PinMyNumber = function (Arg) 
 {
@@ -1102,7 +1093,7 @@ if(typeof PinCC != 'number' || PinCC < 0) {ReturnObj.Error = 103; return ReturnO
 
 // Check if The Given CC Is Minimum Or Equal To The Client Current CC , Less Then Current CC Then Return Error :- 
 
-
+// LEFT !
 CC_Obj = Attach_CC_Update(CC_Obj)
 
 if(!(CC_Obj.Current_Client_CC >= PinCC))
@@ -1116,8 +1107,6 @@ return ReturnObj;
 
 // Frist We Have To Check Which Circle Is Ongoing :- 
 
-Current_Circle_OnGoing = 0;
-
 if(Current_UTC_Min >= 15)
 {
 Current_Circle_OnGoing++;   
@@ -1127,8 +1116,8 @@ else
 Current_Circle_OnGoing = 4;
 }
 
-if(Current_UTC_Min >= 30 && Current_Circle_OnGoing != 4){Current_Circle_OnGoing++;}
-if(Current_UTC_Min >= 45 && Current_Circle_OnGoing != 4){Current_Circle_OnGoing++;}
+if(Current_UTC_Min >= 30 ){Current_Circle_OnGoing++;}
+if(Current_UTC_Min >= 45 ){Current_Circle_OnGoing++;}
 
 ReturnObj.Error = 100; // 100 = Pin Time Over !
 
@@ -1174,8 +1163,8 @@ Pin_History_Value = JSON.parse(GetUserInternalData_Result.Data["Pin_History"].Va
 
 // Pin Bio :-
 
-var Pin_Key = "Pin_";
-var Pin_Value = {};
+var Fresh_Pin_Key = "Pin_";
+var Fresh_Pin_Value = {};
 
 if(Pin_History_Value.hasOwnProperty("TotalPins")) // Then Increass It By 1 :-
 {
@@ -1187,45 +1176,44 @@ else
 Pin_History_Value.TotalPins = 1;
 }
 
-Pin_Key = Pin_Key + Pin_History_Value.TotalPins;
+Fresh_Pin_Key = Fresh_Pin_Key + Pin_History_Value.TotalPins;
+
 
 // Save Format :-Year/Month/Day/Set/PinCircle/CCWas/Value/CC :-
 
-Pin_Value.PinNumber = PinNumber;
-Pin_Value.PinCC = PinCC;
+Fresh_Pin_Value.PinNumber = PinNumber;
+Fresh_Pin_Value.PinCC = PinCC;
 
-Pin_Value.PinYear  = Now.getFullYear();
-Pin_Value.PinMonth = Now.getMonth();
-Pin_Value.PinDay   = Now.getDate();
-Pin_Value.PinSet   = Now.getHours() + 1; // (1-24 Set.)
+Fresh_Pin_Value.PinYear  = Now.getFullYear();
+Fresh_Pin_Value.PinMonth = Now.getMonth();
+Fresh_Pin_Value.PinDay   = Now.getDate();
+Fresh_Pin_Value.PinSet   = Now.getHours() + 1; // (1-24 Set.)
 
 // Upcoming_Circle :-
 
 Current_Circle_OnGoing ++;
 if(Current_Circle_OnGoing == 5){Current_Circle_OnGoing = 1;} 
 
-Pin_Value.PinCircle = Current_Circle_OnGoing;
-Pin_Value.CCWas = CC_Obj.Current_Client_CC;
+Fresh_Pin_Value.PinCircle = Current_Circle_OnGoing;
+Fresh_Pin_Value.CCWas = CC_Obj.Current_Client_CC;
 
 // Update Of The Pin_History_Value With The Latest Pin :-
-Pin_History_Value[Pin_Key] = JSON.stringify(Pin_Value); 
+Pin_History_Value[Fresh_Pin_Key] = Fresh_Pin_Value; 
 
 // Update of the Final Change To the Server :-
 
 // Build Of The Request :-
 var UpdateUserInternalData_Request = {"PlayFabId": currentPlayerId,"Data": {"Pin_History":JSON.stringify(Pin_History_Value)}};
                 
-log.info("Data.Pin_History :" + UpdateUserInternalData_Request.Data.Pin_History) + " !";
-
 // Submit Of The Request To the Server :-
  var Result = server.UpdateUserInternalData(UpdateUserInternalData_Request);
     
 
 if(Result) // If Sucessfull :-
 {
-    // Left;
+    
 // Then Attach The Pin History Data And Return To the Client :-
-ReturnObj = handlers.pop(Provide_ClientPinHistory());
+// ReturnObj = handlers.pop(Provide_ClientPinHistory());
 
 ReturnObj.Result = 105; // Sucessful To pin !
 
