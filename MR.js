@@ -1,4 +1,4 @@
-// Main Cloud Script 
+//#region Field's :-
 
 var  MaxReferral = 1000;
 var  ReferralCodeRedeemReward = 25;     
@@ -14,6 +14,8 @@ var Pin_Limit = 99;
 var CC_Code = "CC";
 
 var  Referral_Badge_Item_ID = "ReferralBadge";
+
+//#endregion
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -99,7 +101,7 @@ var UpdateUserReadOnlyDataResult  = server.UpdateUserReadOnlyData(UpdateUserRead
 if (UpdateUserReadOnlyDataResult) 
 {
 
-IssueClientCC(ReferralCode,ReferrerReward,103); 
+Issue_Client_CC(ReferralCode,ReferrerReward,103); 
 
 
 var MainKey       = "ReferralConnected"; 
@@ -318,7 +320,7 @@ var UpdateUserReadOnlyDataResult = server.UpdateUserReadOnlyData(UpdateUserReadO
 
 if(UpdateUserReadOnlyDataResult) 
 {
-IssueClientCC (currentPlayerId,ReferralCodeRedeemReward,100);
+Issue_Client_CC (currentPlayerId,ReferralCodeRedeemReward,100);
 // Inform the Referred Client That The Current Client Has Used His Referral Code 
 MakeAnnouncementPop_Up (Referral_Code,102);
 }
@@ -940,7 +942,9 @@ return GivenObj;
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-//#region Pin's Recoder,Updater,Tracker, Method's :-
+//#region Pin's Recoder,Updater,Tracker Method's :-
+
+// Pin_Status_Code :- 100 = Fresh , 101 = Won , 102 = Lost !
 
 function Can_Client_Pin ()
 {
@@ -1093,11 +1097,11 @@ if(typeof PinCC != 'number' || PinCC < 0) {ReturnObj.Error = 103; return ReturnO
 
 // Check if The Given CC Is Minimum Or Equal To The Client Current CC , Less Then Current CC Then Return Error :- 
 
-// LEFT !
 CC_Obj = Attach_CC_Update(CC_Obj)
 
 if(!(CC_Obj.Current_Client_CC >= PinCC))
 {
+ReturnObj.Current_Client_CC = CC_Obj.Current_Client_CC;
 ReturnObj.Error = 101; // low cc !
 return ReturnObj;
 }
@@ -1140,6 +1144,18 @@ if(Current_UTC_Min >= 57 || Current_UTC_Min == 0 ){return ReturnObj;}
 if(Current_Circle_OnGoing == 4) // Then We Will Look For Circle 1 Release Time :-
 {
 if(Current_UTC_Min >= 12) {return ReturnObj;}   
+}
+
+// Check If The Client Has Not Exceed More Then Max Pin 'Count' :-
+
+
+var Pin_Obj  = Can_Client_Pin (); // Object !
+
+if(Pin_Obj.Can_Client_Pin == false)
+{
+ReturnObj.Can_Client_Pin = false; 
+ReturnObj.Total_Pin = Pin_Obj.Total_Pin;
+return ReturnObj;
 }
 
 //#endregion
@@ -1195,7 +1211,7 @@ Current_Circle_OnGoing ++;
 if(Current_Circle_OnGoing == 5){Current_Circle_OnGoing = 1;} 
 
 Fresh_Pin_Value.PinCircle = Current_Circle_OnGoing;
-Fresh_Pin_Value.CCWas = CC_Obj.Current_Client_CC;
+Fresh_Pin_Value.CCWas = CC_Obj.Current_Client_CC - PinCC;
 
 // Update Of The Pin_History_Value With The Latest Pin :-
 Pin_History_Value[Fresh_Pin_Key] = Fresh_Pin_Value; 
@@ -1211,13 +1227,18 @@ var UpdateUserInternalData_Request = {"PlayFabId": currentPlayerId,"Data": {"Pin
 
 if(Result) // If Sucessfull :-
 {
-    
+
+Update_Pin_Count();
+
 // Then Attach The Pin History Data And Return To the Client :-
-// ReturnObj = handlers.pop(Provide_ClientPinHistory());
+
+ReturnObj.Current_Client_CC = CC_Obj.Current_Client_CC;
+
+ReturnObj.Pin_History = JSON.stringify(Pin_History_Value);
 
 ReturnObj.Result = 105; // Sucessful To pin !
 
-// Return the Final Obj The client Device :-
+Subtract_Client_CC (CC_Obj.Current_Client_CC - PinCC,null);
 
 return ReturnObj;
 
@@ -1247,7 +1268,9 @@ return FinalObj;
 
 //#region CC Releated Method's :-
 
-function IssueClientCC  (IssuerID,TotalCC,AnnouncemetCode)
+// Function To Issue Client CC :-
+
+function Issue_Client_CC  (IssuerID,TotalCC,AnnouncemetCode)
 {
 
 log.info("IssueClientCC Called With Following Parameter = " + IssuerID +","+ TotalCC +","+ AnnouncemetCode); 
@@ -1265,6 +1288,38 @@ log.info (  IssuerID + " Issued " + AddUserVirtualCurrencyRequest.Amount + " " +
 
 } 
 
+// Function To Subtract Current Client CC :-
+
+function Subtract_Client_CC  (Total_Subtract_CC,AnnouncemetCode)
+{
+
+var Final_CC = 0;
+
+// Build Of The Request :-
+var GetUserInventoryRequest = {"PlayFabId":currentPlayerId};
+
+// Submit Of The Request To Server :-
+var GetUserInventoryResult = server.GetUserInventory(GetUserInventoryRequest);
+
+Final_CC = GetUserInventoryResult.VirtualCurrency["CC"];
+
+Final_CC =  Final_CC - Total_Subtract_CC;
+
+// Update The Final_CC Value To the Server :-
+
+var AddUserVirtualCurrencyRequest = {"PlayFabId":currentPlayerId,"VirtualCurrency": CC_Code ,"Amount": Final_CC};
+
+var AddUserVirtualCurrencyResult  =  server.AddUserVirtualCurrency(AddUserVirtualCurrencyRequest);
+
+
+if (AddUserVirtualCurrencyResult)
+{
+// MakeAnnouncementPop_Up (IssuerID,AnnouncemetCode);
+}
+
+} 
+
+
 // This Function Will Attach A CC Updated To The Called Method Return Obj And Return To The Client As CC Update:-
 function Attach_CC_Update (ReturnObj)
 {
@@ -1278,7 +1333,7 @@ var GetUserInventoryResult  = server.GetUserInventory(GetUserInventoryRequest);
 
 // Attach CC To The Return Object :-
 
-ReturnObj.Current_Client_CC = GetUserInventoryResult.VirtualCurrency["CC"].toString();
+ReturnObj.Current_Client_CC = GetUserInventoryResult.VirtualCurrency["CC"];
 
 // Return The Object :-
 
