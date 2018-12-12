@@ -1211,7 +1211,7 @@ Current_Circle_OnGoing ++;
 if(Current_Circle_OnGoing == 5){Current_Circle_OnGoing = 1;} 
 
 Fresh_Pin_Value.PinCircle = Current_Circle_OnGoing;
-Fresh_Pin_Value.CCWas = CC_Obj.Current_Client_CC - PinCC;
+Fresh_Pin_Value.Final_CC  = CC_Obj.Current_Client_CC - PinCC;
 
 // Update Of The Pin_History_Value With The Latest Pin :-
 Pin_History_Value[Fresh_Pin_Key] = Fresh_Pin_Value; 
@@ -1234,7 +1234,7 @@ Update_Pin_Count();
 
 ReturnObj.Current_Client_CC = CC_Obj.Current_Client_CC;
 
-ReturnObj.Pin_History = JSON.stringify(Pin_History_Value);
+ReturnObj.Pin_History = Pin_History_Value; // Store As A Object !
 
 ReturnObj.Result = 105; // Sucessful To pin !
 
@@ -1249,6 +1249,7 @@ return ReturnObj;
 
 } 
 
+// 100 = No Pin History ! 
 
 handlers.Provide_ClientPinHistory = function ()
 {
@@ -1257,6 +1258,23 @@ var FinalObj = {};
 
 // Attach CC Update :-
 FinalObj = Attach_CC_Update (FinalObj);
+
+// Build Of Server Request :- 
+
+var GetUserInternalData_Request = {"PlayFabId":currentPlayerId, "Keys": ["Pin_History"]};
+
+// Submit of the Request to the Server :-
+
+var GetUserInternalData_Result = server.GetUserInternalData (GetUserInternalData_Request);
+
+if(GetUserInternalData_Result.Data.hasOwnProperty("Pin_History"))  
+{
+FinalObj.Pin_History = JSON.parse(GetUserInternalData_Result.Data["Pin_History"].Value)
+}
+else
+{
+FinalObj.Result = 100; // No Pin History ! 
+}
 
 return FinalObj;
 
@@ -1307,12 +1325,12 @@ Final_CC =  Final_CC - Total_Subtract_CC;
 
 // Update The Final_CC Value To the Server :-
 
-var AddUserVirtualCurrencyRequest = {"PlayFabId":currentPlayerId,"VirtualCurrency": CC_Code ,"Amount": Final_CC};
+var Request = {"PlayFabId":currentPlayerId,"VirtualCurrency": CC_Code ,"Amount": Final_CC};
 
-var AddUserVirtualCurrencyResult  =  server.AddUserVirtualCurrency(AddUserVirtualCurrencyRequest);
+var Result = server.SubtractUserVirtualCurrency(Request);
 
 
-if (AddUserVirtualCurrencyResult)
+if (Result)
 {
 // MakeAnnouncementPop_Up (IssuerID,AnnouncemetCode);
 }
