@@ -1232,13 +1232,13 @@ Update_Pin_Count();
 
 // Then Attach The Pin History Data And Return To the Client :-
 
-ReturnObj.Current_Client_CC = CC_Obj.Current_Client_CC;
+ReturnObj.Current_Client_CC = CC_Obj.Current_Client_CC - PinCC;
 
 ReturnObj.Pin_History = Pin_History_Value; // Store As A Object !
 
 ReturnObj.Result = 105; // Sucessful To pin !
 
-Subtract_Client_CC (CC_Obj.Current_Client_CC - PinCC,null);
+if(PinCC != 0) {Subtract_Client_CC (CC_Obj.Current_Client_CC - PinCC,null);}
 
 return ReturnObj;
 
