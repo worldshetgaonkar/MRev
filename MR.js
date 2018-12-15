@@ -7,7 +7,8 @@ var  TerminateReferralProcessAt = 488;
 
 // Pin Stuff :-
 
-var Pin_Limit = 99;
+var Pin_Limit = 200; // Total Pin Client Allowed To Pin in 24 Hour !
+var Pin_Store_Limit = 9; // Total Pin Client Allowed To Store in Pin_History Value ! 
 
 // CC Stuff :-
 
@@ -925,6 +926,7 @@ var  Can_Client_Pin_Return_Obj  = Can_Client_Pin ();
 GivenObj.Can_Client_Pin = Can_Client_Pin_Return_Obj.Can_Client_Pin;
 GivenObj.Total_Pin = Can_Client_Pin_Return_Obj.Total_Pin;
 GivenObj.Pin_Limit = Pin_Limit;
+GivenObj.Pin_Store_Limit = Pin_Store_Limit;
 
 // CC_Updated :-
 
@@ -1249,15 +1251,12 @@ return ReturnObj;
 
 } 
 
-// 100 = No Pin History ! 
+// 100 = Error Occur , 101 = No Pin History Found ! 
 
 handlers.Provide_ClientPinHistory = function ()
 {
 
 var FinalObj = {};
-
-// Attach CC Update :-
-FinalObj = Attach_CC_Update (FinalObj);
 
 // Build Of Server Request :- 
 
@@ -1267,13 +1266,15 @@ var GetUserInternalData_Request = {"PlayFabId":currentPlayerId, "Keys": ["Pin_Hi
 
 var GetUserInternalData_Result = server.GetUserInternalData (GetUserInternalData_Request);
 
+if(GetUserInternalData_Result == false){FinalObj.Error = 100; return FinalObj;} // Error Occur !
+
 if(GetUserInternalData_Result.Data.hasOwnProperty("Pin_History"))  
 {
 FinalObj.Pin_History = JSON.parse(GetUserInternalData_Result.Data["Pin_History"].Value)
 }
 else
 {
-FinalObj.Result = 100; // No Pin History ! 
+FinalObj.Result = 101; // No Pin History Found ! 
 }
 
 return FinalObj;
